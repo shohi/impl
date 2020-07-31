@@ -1,7 +1,9 @@
 `impl` generates method stubs for implementing an interface.
 
 ```bash
-go get -u github.com/josharian/impl
+# go get -u github.com/josharian/impl
+# NOTE: once PR#28 gets merged, the original repo should be used.
+go get -u github.com/shohi/imp
 ```
 
 Sample usage:
