@@ -84,7 +84,15 @@ func findInterface(iface string, srcDir string) (path string, id string, err err
 		panic(err)
 	}
 	if len(f.Imports) == 0 {
-		return "", "", fmt.Errorf("unrecognized interface: %s", iface)
+		// If we were given an identifier with no "." in it,
+		// and goimports couldn't resolve it,
+		// assume it is from the current package.
+		if strings.Contains(iface, ".") {
+			return "", "", fmt.Errorf("unrecognized interface: %s", iface)
+		}
+
+		return ".", iface, nil
+
 	}
 	raw := f.Imports[0].Path.Value   // "io"
 	path, err = strconv.Unquote(raw) // io
@@ -167,9 +175,9 @@ func (p Pkg) fullType(e ast.Expr) string {
 		case *ast.Ident:
 			// Using typeSpec instead of IsExported here would be
 			// more accurate, but it'd be crazy expensive, and if
-			// the type isn't exported, there's no point trying
-			// to implement it anyway.
-			if n.IsExported() {
+			// the type isn't exported and not from source package,
+			// there's no point trying to implement it anyway.
+			if n.IsExported() && p.Package.Dir != *flagSrcDir {
 				n.Name = p.Package.Name + "." + n.Name
 			}
 		case *ast.SelectorExpr:
